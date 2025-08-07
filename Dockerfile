@@ -1,13 +1,18 @@
-FROM gradle:jdk21-alpine
-RUN mkdir /home/gradle/buildWorkspace
-COPY . /home/gradle/buildWorkspace
+FROM gradle:jdk21-alpine as build
+COPY . /app
 
-WORKDIR /home/gradle/buildWorkspace
-RUN ls /home/gradle/buildWorkspace
+#COPY build.gradle /app
+
+WORKDIR /app
 RUN gradle build --no-daemon
-RUN ls /home/gradle/buildWorkspace/build/libs/
-RUN cp /home/gradle/buildWorkspace/build/libs/tedtalks-0.0.1-SNAPSHOT.jar /home/gradle/buildWorkspace/app.jar
+FROM openjdk:21
+COPY --from=build /app/build/libs/*.jar /app/app.jar
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+WORKDIR /app
 
+RUN pwd
+RUN ls /app
 
+EXPOSE 8080
+
+CMD ["java", "-jar", "app.jar"]
